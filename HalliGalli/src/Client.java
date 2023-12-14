@@ -7,6 +7,10 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Timer;
 
 import javax.swing.ImageIcon;
@@ -17,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 
 
@@ -57,6 +62,37 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	        }
 	    };
 	    
+		// 채팅 되는지 보려고 내가 임의로 추가했음!! 확인하면 주석은 지워도 됨 + 수정해도 됨
+	    private void Chat() {
+	        try {
+	            Socket socket = new Socket("localhost", 9999); // 서버의 IP와 포트에 맞게 수정
+	            DataInputStream is = new DataInputStream(socket.getInputStream());
+	            DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+
+	            // 클라이언트에서 채팅 메시지를 서버로 전송하는 부분
+	            text_Field.addActionListener(new ActionListener() {
+	                @Override
+	                public void actionPerformed(ActionEvent e) {
+	                    try {
+	                        os.writeUTF(text_Field.getText());
+	                        os.flush(); // 추가: 버퍼 비우기
+	                        text_Field.setText("");
+	                        //text_Field.setText("");
+	                    } catch (IOException ex) {
+	                        ex.printStackTrace();
+	                    }
+	                }
+	            });
+
+	            while (true) {
+	                // 서버에서 받은 채팅 메시지를 JTextArea에 출력하는 부분
+	                String message = is.readUTF();
+	                text_Area.append(message + "\n");
+	            }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	    }
 	    
 	
 	public Client() {
@@ -177,9 +213,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 		p.add(gameStatusPanel);
 		
 		
-		
-		
-		
+
     
         setSize(900, 700);
         setVisible(true);
@@ -189,8 +223,8 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	
 	
 	public static void main(String[] args) {
-		new Client();
-	
+	    Client client = new Client();
+        client.Chat();
 		
 	}
 }
