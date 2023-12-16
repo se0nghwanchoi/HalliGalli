@@ -68,7 +68,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	            Socket socket = new Socket("localhost", 9999); // 서버의 IP와 포트에 맞게 수정
 	            DataInputStream is = new DataInputStream(socket.getInputStream());
 	            DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-
+	           
 	            // 클라이언트에서 채팅 메시지를 서버로 전송하는 부분
 	            text_Field.addActionListener(new ActionListener() {
 	                @Override
