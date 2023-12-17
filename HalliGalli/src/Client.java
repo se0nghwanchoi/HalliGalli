@@ -61,7 +61,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	        public void actionPerformed(ActionEvent e) {
 	            bellButton.setIcon(bellRIcon); // 이미지 변경
 	            
-	            // 종 클릭했을 때 효과음 실행
+	            // 종 클릭했을 때 효과음 실행하도록 설정
 	            try {
 	            	stream = AudioSystem.getAudioInputStream(bgm);
 	            	format = stream.getFormat();
