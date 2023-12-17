@@ -47,8 +47,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	ImageIcon cardOpenPIcon = new ImageIcon("images/card_open_p.png");  //카드 오픈 버튼이 눌렸을때
 	
 	File bgm = new File("sounds/bell.wav"); // 종 효과음
-    AudioInputStream stream;
-    AudioFormat format;
+    AudioInputStream str;
     DataLine.Info info;
     
     Clip clip;
@@ -63,14 +62,13 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	            
 	            // 종 클릭했을 때 효과음 실행하도록 설정
 	            try {
-	            	stream = AudioSystem.getAudioInputStream(bgm);
-	            	format = stream.getFormat();
-	            	info = new DataLine.Info(Clip.class, format);
+	            	str = AudioSystem.getAudioInputStream(bgm);
+	            	info = new DataLine.Info(Clip.class, str.getFormat());
 	            	clip = (Clip)AudioSystem.getLine(info);
-	            	clip.open(stream);
+	            	clip.open(str);
 	            	clip.start();
 	            } catch (Exception ee) {
-	            	System.out.println("music err");
+	            	System.out.println("music error");
 	            }
 
 	            // javax.swing.Timer 사용
