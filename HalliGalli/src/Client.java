@@ -9,10 +9,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Timer;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -31,7 +38,6 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	//JButton[] playerButtons = new JButton[4];  //플레이어 버튼
 	Image backgroundImage;
 	JScrollPane 				scroll_Pane;
-	
 	JTextArea 					text_Area;
 	JTextField 					text_Field; 
 	
@@ -39,7 +45,13 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	ImageIcon bellRIcon = new ImageIcon("images/BellR.png"); //종이 눌렸을때 이미지
 	ImageIcon cardOpenIcon = new ImageIcon("images/card_open.png");    //카드 오픈 버튼 이미지
 	ImageIcon cardOpenPIcon = new ImageIcon("images/card_open_p.png");  //카드 오픈 버튼이 눌렸을때
-
+	
+	File bgm = new File("sounds/bell.wav"); // 종 효과음
+    AudioInputStream stream;
+    AudioFormat format;
+    DataLine.Info info;
+    
+    Clip clip;
 	
 	JButton bellButton = new JButton(bellIcon); 
 	 
@@ -48,6 +60,18 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
 	            bellButton.setIcon(bellRIcon); // 이미지 변경
+	            
+	            // 종 클릭했을 때 효과음 실행
+	            try {
+	            	stream = AudioSystem.getAudioInputStream(bgm);
+	            	format = stream.getFormat();
+	            	info = new DataLine.Info(Clip.class, format);
+	            	clip = (Clip)AudioSystem.getLine(info);
+	            	clip.open(stream);
+	            	clip.start();
+	            } catch (Exception ee) {
+	            	System.out.println("music err");
+	            }
 
 	            // javax.swing.Timer 사용
 	            javax.swing.Timer timer = new javax.swing.Timer(1000, new ActionListener() {
@@ -115,9 +139,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
         BackGround backGround = new BackGround();
     	//backGround.setOpaque(false); //패널 불투명도 설정
     	setContentPane(backGround);
-    	
-    	
-    
+
     	Container p = getContentPane();
     	p.setLayout(null);
     	
