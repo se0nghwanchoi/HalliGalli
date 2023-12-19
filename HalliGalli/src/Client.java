@@ -109,6 +109,9 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	    
 	
 	public Client() {
+		 // 카드 덱 초기화
+        initializeDeck();	
+        
 		setTitle("할리갈리");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null); 
@@ -118,9 +121,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
             players[i] = new Player();
         }
        
-        // 카드 덱 초기화
-        initializeDeck();
-        
+       
         
         class BackGround extends JPanel { //배경이미지 설정
         	ImageIcon icon = new ImageIcon("images/backG.jpg");
@@ -243,25 +244,24 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
                    default:
                        break;
                }
-            	    for (int i = 0; i < 4; i++) {
-            	        // 현재 플레이어에게 카드를 주지 않도록 함 (현재 플레이어의 인덱스는 currentPlayer에 저장되어 있음)
-            	        if (i != currentPlayer) {
-            	            if (!deck.isEmpty()) {
-            	                // 덱에서 카드 한 장 뽑기
-            	                Card drawnCard = deck.remove(0);
-            	                // 해당 플레이어에게 카드 한 장 주기
-            	                players[i].addToHand(drawnCard);
-            	                // 플레이어의 카드 장수 갱신
-            	                //playerCardCount[i]++;
-            	                cardcountLabels[i].setText((players[i].getHand().size()) + "장 ");
-            	                
-            	               
-            	            } else {
-            	                System.out.println("덱에 카드가 없습니다.");
-            	                // 만약 덱에 카드가 없는 경우, 이에 대한 추가 처리를 진행해야 할 수 있습니다.
-            	            }
-            	        }
-            	    }
+            	   for (int i = 0; i < 4; i++) {
+            		    // 현재 플레이어에게 카드를 주지 않도록 함 (현재 플레이어의 인덱스는 currentPlayer에 저장되어 있음)
+            		    if (i != currentPlayer) {
+            		        if (!players[i].getHand().isEmpty()) {
+            		            
+            		            Card drawnCard = players[currentPlayer].getHand().remove(players[currentPlayer].getHand().size() - 1);            		            
+            		            players[i].addToHand(drawnCard);
+            		            // 플레이어의 카드 장수 갱신
+            		            cardcountLabels[i].setText((players[i].getHand().size()) + "장 ");
+            		            cardcountLabels[currentPlayer].setText((players[currentPlayer].getHand().size()) + "장 ");
+            		            
+            		            
+            		        } else {
+            		            System.out.println("플레이어 " + (i + 1) + "의 핸드에 카드가 없습니다.");
+            		            // 해당 플레이어의 핸드에 카드가 없는 경우, 이에 대한 추가 처리를 진행할 수 있습니다.
+            		        }
+            		    }
+            		}
                }
                else {			//종치기 성공
             	   switch (currentPlayer) {
@@ -301,6 +301,10 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
             	// 전체 플레이어의 cardLabels에 back 이미지를 설정
             	    for (int i = 0; i < 4; i++) {
             	        cardLabels[i].setIcon(cardbackIcon);
+            	        if (players[i].getHand().isEmpty()) {
+            	            // 플레이어의 핸드가 비어있으면 죽음 처리 혹은 다음 게임에 관여하지 않도록 설정할 수 있음
+            	        	System.out.println("Player" + (i+1) + "이 죽음");
+            	        }
             	    }
             	   
                }
@@ -370,8 +374,10 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 		      
 		            flipCardButton.setIcon(cardOpenPIcon);
 
-		            // 뒤집힌 카드 가져오기
-		            Card flippedCard = deck.remove(0);
+		            
+		            // 현재 플레이어의 핸드에서 카드 뒤집기
+		            if (!players[currentPlayer].getHand().isEmpty()) {
+		            Card flippedCard = players[currentPlayer].getHand().remove(players[currentPlayer].getHand().size() - 1);
 		            System.out.println("뒤집힌 카드: " + flippedCard.getFruit() + " " + flippedCard.getNumber());
 
 		            // 뒤집은 카드의 이미지 설정
@@ -385,29 +391,18 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 		            
 		            table.showTableList(); //체크
 
-		         // 각 플레이어의 카드 수 감소
-		            int currentHandSize = players[currentPlayer].getHand().size();
-		            if (currentHandSize > 0) {
-		                players[currentPlayer].getHand().remove(currentHandSize - 1); // 카드 수 감소
-		                cardcountLabels[currentPlayer].setText((currentHandSize - 1) + "장 "); // 감소된 카드 장수를 UI에 반영
+		        
+		            cardcountLabels[currentPlayer].setText((players[currentPlayer].getHand().size()) + "장 ");
+		            } else {
+		                System.out.println("핸드에 카드가 없습니다.");
 		            }
 
-		            
-		            // 다음 플레이어 차례로 변경
-		            currentPlayer = (currentPlayer + 1) % 4; // 4명의 플레이어가 있다고 가정
-
-		            // 플레이어들의 카드가 모두 소진되었는지 확인하고, 게임이 종료되었는지 확인하여 처리
-//		            if (isGameOver()) {
-//		                // 게임 종료 로직 구현
-//		                determineWinner();
-//		                // 추가적인 게임 종료 관련 로직을 구현할 수 있음
-//		            }
-		            
-		            //덱이 비어있는지 검사
-		     	    if (deck.isEmpty()) {
-		     	        System.out.println("덱에 카드가 없습니다.");
-		     	        
-		     	    }
+		            currentPlayer = (currentPlayer + 1) % 4; // 다음 플레이어로 넘어감
+		         // 현재 플레이어의 핸드가 비어있거나 다음 플레이어로 넘어가는 조건 확인
+		            if (players[currentPlayer].getHand().isEmpty()) {
+		                System.out.println("플레이어 " + (currentPlayer + 1) + "의 핸드에 카드가 없습니다.");
+		                
+		            }
 
 			        javax.swing.Timer timer = new javax.swing.Timer(1000, new ActionListener() {
 			            @Override
@@ -544,11 +539,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	     			}
 	     		}
 
-	     		 // 덱이 비어있는지 확인하여 종을 칠 수 있는지 검사
-	     	    if (deck.isEmpty()) {
-	     	        System.out.println("덱에 카드가 없습니다.");
-	     	        return false;
-	     	    }
+	     		
 	     		return false;
 	     	}
 	     }
@@ -562,13 +553,19 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	         public Player() {
 	        	 
 	             hand = new ArrayList<>();
-	             
+	             initializeHandWithCards();
 	          
 	         }
 
 	         public List<Card> getHand() {
 	             return hand;
 	             
+	         }
+	         private void initializeHandWithCards() {
+	             for (int i = 0; i < 14; i++) {
+	                 Card card = deck.remove(0); // 덱에서 카드 하나를 뽑아옴
+	                 hand.add(card);
+	             }
 	         }
 	         	      
 	         public void addToHand(Card card) {
