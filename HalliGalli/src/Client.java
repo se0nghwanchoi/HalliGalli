@@ -119,6 +119,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
         // Player 객체 생성 후 players 배열에 추가
         for (int i = 0; i < 4; i++) {
             players[i] = new Player();
+            players[i].setAlive(true);
         }
        
        
@@ -196,10 +197,10 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
      		JPanel gameStatusPanel = new JPanel();
      		//gameStatusPanel.setLayout(new BorderLayout());
      		gameStatusPanel.setLocation(30, 110); // 상단에 배치할 예정이므로 적절한 위치 지정
-     		gameStatusPanel.setSize(229, 110); // 남은 공간만큼의 크기 설정
+     		gameStatusPanel.setSize(229, 130); // 남은 공간만큼의 크기 설정
      		// 예시로 JLabel을 사용하여 간단한 게임 상황 표시
-     		JLabel gameStatusLabel = new JLabel("다른 플레이어를 기다리는중..");
-     		gameStatusLabel.setFont(new Font("Serif", Font.BOLD, 16));
+     		JLabel gameStatusLabel = new JLabel("Player 1의 차례입니다");
+     		gameStatusLabel.setFont(new Font("Serif", Font.BOLD, 20));
      		gameStatusLabel.setForeground(Color.BLACK); 
      		gameStatusPanel.add(gameStatusLabel);
      		gameStatusPanel.setOpaque(false); // 배경을 투명하게 설정하여 채팅 창의 배경 이미지가 보이도록 함
@@ -220,10 +221,36 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
             @Override
             public void actionPerformed(ActionEvent e) {
                 bellButton.setIcon(bellRIcon); // 이미지 변경
-                // 종 클릭했을 때 효과음 실행하도록 설정
                 
+//                for (int i = 0; i < players.length; i++) {    //체크용
+//                    System.out.println("플레이어 " + (i + 1) + "의 생존 상태: " + (players[i].isAlive() ? "살아있음" : "죽음"));
+//                }
+                
+               if (players[currentPlayer].isAlive()) {                
                if(!table.sumFive()) {      //종치기 실패     	   
-            	   // 다른 플레이어들에게 카드를 한 장씩 주는 로직 추가
+            	   
+            	   // 종 치기를 시도하는 플레이어의 카드 장수 확인
+                   int currentPlayerCardCount = players[currentPlayer].getHand().size();
+                   if (currentPlayerCardCount == 0) {
+                       // 종치기 시도하는 플레이어의 카드 장수가 0인 경우 경고 표시
+                       switch (currentPlayer) {
+                           case 0:
+                               gameStatusLabel.setText("카드가 없습니다");
+                               break;
+                           case 1:
+                               gameStatusLabel.setText("카드가 없습니다");
+                               break;
+                           case 2:
+                               gameStatusLabel.setText("카드가 없습니다");
+                               break;
+                           case 3:
+                               gameStatusLabel.setText("카드가 없습니다");
+                               break;
+                           default:
+                               break;
+                       }
+                   } 
+                   else {
             	   switch (currentPlayer) {
                    case 0:
                        //System.out.println("플레이어 1 종치기 실패");
@@ -245,8 +272,8 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
                        break;
                }
             	   for (int i = 0; i < 4; i++) {
-            		    // 현재 플레이어에게 카드를 주지 않도록 함 (현재 플레이어의 인덱스는 currentPlayer에 저장되어 있음)
-            		    if (i != currentPlayer) {
+            		   
+            		    if (i != currentPlayer && players[i].isAlive()) {
             		        if (!players[i].getHand().isEmpty()) {
             		            
             		            Card drawnCard = players[currentPlayer].getHand().remove(players[currentPlayer].getHand().size() - 1);            		            
@@ -257,11 +284,13 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
             		            
             		            
             		        } else {
-            		            System.out.println("플레이어 " + (i + 1) + "의 핸드에 카드가 없습니다.");
+            		           // System.out.println("플레이어 " + (i + 1) + "의 핸드에 카드가 없습니다.");
+            		        	gameStatusLabel.setText("핸드에 카드가 없습니다.");
             		            // 해당 플레이어의 핸드에 카드가 없는 경우, 이에 대한 추가 처리를 진행할 수 있습니다.
             		        }
             		    }
             		}
+               }
                }
                else {			//종치기 성공
             	   switch (currentPlayer) {
@@ -304,10 +333,23 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
             	        if (players[i].getHand().isEmpty()) {
             	            // 플레이어의 핸드가 비어있으면 죽음 처리 혹은 다음 게임에 관여하지 않도록 설정할 수 있음
             	        	System.out.println("Player" + (i+1) + "이 죽음");
+            	        	gameStatusLabel.setText("Player" + (i+1) + "이 죽었습니다");
+            	        	players[i].setAlive(false);
+            	        	
             	        }
             	    }
             	   
                }
+               }else {
+            	// 죽은 플레이어가 종을 칠 수 없음을 알리는 메시지를 표시하거나 처리
+                   System.out.println("죽은 플레이어는 종을 칠 수 없습니다.");
+                   gameStatusLabel.setText("죽은 플레이어는 종을 칠 수 없습니다.");
+               }
+               
+               
+               
+               
+            // 종 클릭했을 때 효과음 실행하도록 설정
                 try {
                     str = AudioSystem.getAudioInputStream(bgm);
                     info = new DataLine.Info(Clip.class, str.getFormat());
@@ -370,15 +412,16 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 		flipCardButton.addActionListener(new ActionListener() {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		        // 현재 플레이어가 턴을 진행하는지 확인 (isPlayerTurn 메서드 사용)
-		      
+		       
+		    	// 현재 플레이어가 살아있는지 확인하고 살아있을 경우에만 기능 수행
+		        if (players[currentPlayer].isAlive()) {
 		            flipCardButton.setIcon(cardOpenPIcon);
 
 		            
 		            // 현재 플레이어의 핸드에서 카드 뒤집기
 		            if (!players[currentPlayer].getHand().isEmpty()) {
 		            Card flippedCard = players[currentPlayer].getHand().remove(players[currentPlayer].getHand().size() - 1);
-		            System.out.println("뒤집힌 카드: " + flippedCard.getFruit() + " " + flippedCard.getNumber());
+		            System.out.println("뒤집힌 카드: " + flippedCard.getFruit() + " " + flippedCard.getNumber());  //체크용
 
 		            // 뒤집은 카드의 이미지 설정
 		            ImageIcon flippedCardIcon = getCardImageIcon(flippedCard.getFruit(), flippedCard.getNumber());
@@ -389,20 +432,19 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 		            // 테이블에 카드 추가
 		            table.addTableCard(flippedCard, currentPlayer);
 		            
-		            table.showTableList(); //체크
+		          //  table.showTableList(); //체크
 
 		        
 		            cardcountLabels[currentPlayer].setText((players[currentPlayer].getHand().size()) + "장 ");
 		            } else {
 		                System.out.println("핸드에 카드가 없습니다.");
+		                gameStatusLabel.setText("핸드에 카드가 없습니다.");
 		            }
 
 		            currentPlayer = (currentPlayer + 1) % 4; // 다음 플레이어로 넘어감
-		         // 현재 플레이어의 핸드가 비어있거나 다음 플레이어로 넘어가는 조건 확인
-		            if (players[currentPlayer].getHand().isEmpty()) {
-		                System.out.println("플레이어 " + (currentPlayer + 1) + "의 핸드에 카드가 없습니다.");
-		                
-		            }
+		            gameStatusLabel.setText("Player " + (currentPlayer +1) + "의 차례입니다");
+		            
+
 
 			        javax.swing.Timer timer = new javax.swing.Timer(1000, new ActionListener() {
 			            @Override
@@ -414,15 +456,17 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 
 			        timer.setRepeats(false); // 타이머를 한 번만 실행하도록 설정
 			        timer.start(); // 타이머 시작
+		        } else {
+		        	// 플레이어가 죽은 경우
+		        	currentPlayer = (currentPlayer + 1) % 4;
+
+		        	}
 			    }
 			});
 
 
 		p.add(flipCardButton);
-		
-		
-		
-    
+					  
         setSize(900, 700);
         setVisible(true);
         
@@ -501,11 +545,11 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	            }
 	            list.clear(); // 테이블의 카드 리스트 비우기
 
-	            // 모든 플레이어의 카드 장수 출력
-	            for (int i = 0; i < 4; i++) {
-	                int cardCount = players[i].getHand().size();
-	                System.out.println("플레이어 " + (i + 1) + "의 장수: " + cardCount);
-	            }
+//	            // 모든 플레이어의 카드 장수 출력 
+//	            for (int i = 0; i < 4; i++) {
+//	                int cardCount = players[i].getHand().size();
+//	                System.out.println("플레이어 " + (i + 1) + "의 장수: " + cardCount);
+//	            }
 	        }
 
 	     	// 테이블에 카드 제거(플레이어 BELL)
@@ -534,7 +578,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 
 	     		for (int i = 0; i < 4; i++) {
 	     			if (sum[i] == 5) {
-	     				System.out.println("동일 과일 5개");
+	     				//System.out.println("동일 과일 5개");
 	     				return true;
 	     			}
 	     		}
@@ -548,8 +592,8 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	    
 	     
 	     public class Player {
-	          List<Card> hand; // 플레이어가 가진 카드 리스트
-	         
+	         List<Card> hand; // 플레이어가 가진 카드 리스트
+	         boolean isAlive;
 	         public Player() {
 	        	 
 	             hand = new ArrayList<>();
@@ -571,21 +615,81 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	         public void addToHand(Card card) {
 	             hand.add(card);
 	         }
+	         
+	         public boolean isAlive() {
+	        	 return isAlive;
+	         }
+	         
+	         public void setAlive(boolean alive) {
+	        	 isAlive = alive;
+	         }
 
-	         // 기타 필요한 메서드들을 추가로 구현할 수 있습니다.
+	         
 	     }
 
+	     
+	  // 게임이 종료되었는지 확인하는 메소드
+	     public boolean isGameOver() {
+	         int aliveCount = 0;
+	         int lastAlivePlayerIndex = -1;
 
-	    boolean isPlayerTurn(int playerNumber) {
-	        // 특정 플레이어의 차례인지 확인하는 메서드 (여러 조건을 고려하여 구현)
-	        // 예를 들어, 해당 플레이어가 차례인지 여부를 확인하여 참/거짓 반환
-	        // 여기에 특정 조건을 추가하여 해당 플레이어의 차례 여부를 반환합니다.
-	        return true; // 또는 false로 변경하여 해당 플레이어의 차례 여부를 반환
-	    }
+	         for (int i = 0; i < players.length; i++) {
+	             if (players[i].isAlive()) {
+	                 aliveCount++;
+	                 lastAlivePlayerIndex = i;
+	             }
+	         }
+
+	         // 혼자 살아남은 경우, 승리 조건을 설정
+	         if (aliveCount == 1) {
+	             System.out.println("플레이어 " + (lastAlivePlayerIndex + 1) + "가(이) 혼자 살아남아 승리했습니다!");
+	             
+	             
+	             return true; // 게임 종료
+	         }
+
+	         return false; // 게임 종료 조건이 아님
+	     }
+	     
+	     // 게임 종료 확인 스레드 클래스
+	     class GameEndChecker extends Thread {
+	         private boolean isGameRunning;
+
+	         public GameEndChecker() {
+	             this.isGameRunning = true;
+	         }
+
+	         @Override
+	         public void run() {
+	             while (isGameRunning) {
+	                 // 게임 종료 여부를 확인하여 isGameOver() 메서드 호출
+	                 if (isGameOver()) {
+	                     // 게임 종료 처리 등 필요한 작업 수행
+	                     isGameRunning = false; // 스레드 종료
+	                 }
+
+	                 // 일정 시간마다 스레드를 중지하고 다시 실행하여 게임 상태를 확인
+	                 try {
+	                     Thread.sleep(1000); // 1초마다 확인 (원하는 주기로 조절 가능)
+	                 } catch (InterruptedException ex) {
+	                     ex.printStackTrace();
+	                 }
+	             }
+	         }
+
+	         public void stopThread() {
+	             isGameRunning = false;
+	         }
+	     }
+
+	    
 
 
 	    public static void main(String[] args) {
 	        Client client = new Client();
+	        // 게임 종료 확인 스레드 시작
+	        GameEndChecker gameEndChecker = client.new GameEndChecker();
+	        gameEndChecker.start();
 	        client.Chat();
 	    }
 }
