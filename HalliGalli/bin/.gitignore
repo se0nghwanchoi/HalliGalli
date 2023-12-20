@@ -14,3 +14,13 @@
 /Client$3$1$1.class
 /Client$3$2.class
 /Client$GameEndChecker.class
+/ServerThread$Card.class
+/ServerThread$Player.class
+/ServerThread$Table.class
+/Card$Table.class
+/Table.class
+/Server$Card.class
+/Server$Player.class
+/Server$Table.class
+/Client$Deck.class
+/Client.class
