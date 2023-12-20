@@ -10,10 +10,6 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +44,11 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	JScrollPane 				scroll_Pane;
 	JTextArea 					text_Area;
 	JTextField 					text_Field; 
+	
+	
+	BufferedReader 				reader; 								// 입력스트림
+	PrintWriter 				writer; 								// 출력스트림
+	Socket 						socket;
 	
 	Table table = new Table(); // Table 객체 생성
 	Player[] players = new Player[4]; // 플레이어 배열 생성
