@@ -2,6 +2,10 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import javax.swing.JLabel;
+
+
+
 // Vector 이용하여 각 클라이언트마다 저장할 수 있도록 지정
 public class Server {
     static Vector<ClientInfo> clients = new Vector<>();
@@ -23,6 +27,89 @@ public class Server {
     }
 }
 
+class Card {
+    private int fruit;
+    private int number;
+	JLabel[] cardLabels = new JLabel[4];      //카드
+
+    public Card(int fruit, int number) {
+        this.fruit = fruit;
+        this.number = number;
+    }
+
+    public int getFruit() {
+        return fruit;
+    }
+
+    public int getNumber() {
+        return number;
+    }
+    @Override
+    public String toString() {
+        return "Fruit: " + getFruit() + ", Number: " + getNumber();
+    }
+}
+
+
+class Table {
+ 	private List<Card> list = new LinkedList<>(); // 플레이어가 넘긴 카드 리스트
+ 	Card[] playerCard = new Card[4]; // 현재 보이는 카드
+
+
+ 	// 테이블에 카드 추가(플레이어가 TURN)
+ 	public void addTableCard(Card c, int playerId) {
+ 		list.add(0, c);
+ 		playerCard[playerId] = c;
+ 		
+ 	}
+ 	
+ 
+
+// 종을 친 플레이어에게 테이블에 있는 카드들을 주고, 플레이어의 카드 장수를 갱신
+    public void giveTableCardsToPlayer(int playerId, List<Card> playerCardList) {
+        for (Card card : list) {
+            playerCardList.add(card); // 종을 친 플레이어의 카드 리스트에 카드 추가
+        }
+        list.clear(); // 테이블의 카드 리스트 비우기
+
+    }
+
+ 	// 테이블에 카드 제거(플레이어 BELL)
+ 	public Card removeTableCard() {
+ 		for (int i = 0; i < 4; i++) { // 보이는 카드 초기화
+ 			playerCard[i] = null;
+ 		}
+ 		return list.remove(0);
+ 	}
+
+ 	public void showTableList() {
+ 		System.out.println("TABLE : " + list);
+ 	}
+
+ 	public int size() {
+ 		return list.size();
+ 	}
+
+ 	public boolean sumFive(/* Manager mng */) { // 과일이 다섯개인지 확인해 주는 메소드
+ 		int[] sum = new int[4]; // 각 과일의 총 합
+
+ 		for (int i = 0; i < 4; i++)
+ 			if (playerCard[i] != null) // 뒤집은 카드만
+ 				sum[playerCard[i].getFruit()] += playerCard[i].getNumber();
+
+
+ 		for (int i = 0; i < 4; i++) {
+ 			if (sum[i] == 5) {
+ 				//System.out.println("동일 과일 5개");
+ 				return true;
+ 			}
+ 		}
+
+ 		
+ 		return false;
+ 	}
+ }
+
 //각 클라이언트 정보
 class ClientInfo {
     String name;
@@ -40,6 +127,7 @@ class ClientInfo {
 
 class ServerThread extends Thread {
     private ClientInfo clientInfo;
+    
 
     public ServerThread(ClientInfo clientInfo) {
         this.clientInfo = clientInfo;
