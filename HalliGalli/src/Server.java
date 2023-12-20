@@ -1,110 +1,118 @@
-import java.net.ServerSocket;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import java.net.Socket;
 
+// Vector 이용하여 각 클라이언트마다 저장할 수 있도록 지정
 public class Server {
+    static Vector<ClientInfo> clients = new Vector<>();
 
-	static ArrayList<ServerThread> list = new ArrayList<>();
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(9999);
 
-	public static void main(String[] args) throws IOException {
-		ServerSocket socket = new ServerSocket(9999);
+        while (true) {
+            Socket socket = serverSocket.accept();
+            DataInputStream is = new DataInputStream(socket.getInputStream());
+            DataOutputStream os = new DataOutputStream(socket.getOutputStream());
 
-		Socket s;
+            ClientInfo clientInfo = new ClientInfo("플레이어 " + (clients.size() + 1), is, os, socket);
+            clients.add(clientInfo);
 
-		while (true) {
-			s = socket.accept();
+            ServerThread thread = new ServerThread(clientInfo);
+            thread.start();
+        }
+    }
+}
 
-			DataInputStream is = new DataInputStream(s.getInputStream());
-			DataOutputStream os = new DataOutputStream(s.getOutputStream());
-			int count = (int)(list.size()+1); // 방 인원 check
-			
-			ServerThread thread = new ServerThread(s, "PLAYER " + count, is, os);
-			list.add(thread);
-			thread.start();
-		}
-	}
+//각 클라이언트 정보
+class ClientInfo {
+    String name;
+    DataInputStream is;
+    DataOutputStream os;
+    Socket socket;
+
+    public ClientInfo(String name, DataInputStream is, DataOutputStream os, Socket socket) {
+        this.name = name;
+        this.is = is;
+        this.os = os;
+        this.socket = socket;
+    }
 }
 
 class ServerThread extends Thread {
-	Scanner scn = new Scanner(System.in);
-	private String name;
-	final DataInputStream is;
-	final DataOutputStream os;
-	Socket s;
-	boolean active;
+    private ClientInfo clientInfo;
 
-	public ServerThread(Socket s, String name, DataInputStream is, DataOutputStream os) {
-		this.is = is;
-		this.os = os;
-		this.name = name;
-		this.s = s;
-		this.active = true;
-	}
+    public ServerThread(ClientInfo clientInfo) {
+        this.clientInfo = clientInfo;
+    }
 
-	@Override
-	public void run() {
-        String message;
+    @Override
+    public void run() {
         try {
-        	
-        	for (ServerThread t : Server.list) {
-                if (t != this) {
-                    t.os.writeUTF(this.name + " 님께서 입장하셨습니다.");
-                    t.os.flush();
-                }
-            }
-        	
-        	//클라이언트와 통신
+            broadcast(clientInfo.name + " 님이 입장하셨습니다.");
+
+            String message;
             while (true) {
-                message = is.readUTF();
-                if (message.equals("logout")) {
-                	
-                    this.active = false;
+                message = clientInfo.is.readUTF();
+
+                if (message.equals("로그아웃")) {
+                    broadcast(clientInfo.name + " 님이 방을 나가셨습니다.");
                     break;
-                }
-                for (ServerThread t : Server.list) {
-                    t.os.writeUTF(this.name + " : " + message);
-                    t.os.flush();
+                } else if (message.startsWith("JLabelChange:")) {
+                	// "JLabelChange:"로 시작하는 메시지를 처리하고 JLabel 값을 변경하도록 함
+                	String newLabel = message.substring("JLabelChange:".length());
+                    //labelChange(newLabel);
+                    broadcast("JLabel 값이 변경되었습니다: " + newLabel);
+                } else {
+                    broadcast(clientInfo.name + " : " + message);
                 }
             }
         } catch (IOException e) {
-            // 클라이언트와의 연결이 끊어졌을 때 예외 처리
-        	
-        	//System.err.println("Client " + this.name + " disconnected.");
+            e.printStackTrace();
         } finally {
-        	
-        	for (ServerThread t : Server.list) {
-                if (t != this) {
-                    
-                    try {
-                    	t.os.writeUTF(this.name + " 님께서 방을 나가셨습니다.");
-						t.os.flush();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-                }
+            synchronized (Server.clients) {
+                Server.clients.remove(clientInfo);
             }
-            // 클라이언트와의 연결이 끊어지면 해당 클라이언트를 리스트에서 제거
-            Server.list.remove(this);
-            
-            
-            
             try {
-                this.is.close();
-                this.os.close();
-                this.s.close();
+                clientInfo.is.close();
+                clientInfo.os.close();
+                clientInfo.socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if(Server.list.isEmpty()) {
-            	System.out.println("모든 플레이어가 퇴장하였습니다.");
-            	System.exit(0);
+            if (Server.clients.isEmpty()) {
+                System.out.println("모든 플레이어가 퇴장하였습니다.");
+                System.exit(0);
             }
         }
     }
 
+    //모든 클라이언트에 변경값 알림
+    public void broadcast(String message) {
+        synchronized (Server.clients) {
+            for (ClientInfo client : Server.clients) {
+                try {
+                	if(message.startsWith("JLabel 값이 변경되었습니다: ")) {
+                    	//String newLabel = message.substring("JLabel 값이 변경되었습니다: ".length());
+                        client.os.writeUTF(message);
+                        client.os.flush();
+                	}
+                	else {
+                        client.os.writeUTF(message);
+                        client.os.flush();
+                	}
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void labelChange(String msg) {
+        try {
+            clientInfo.os.writeUTF(msg);
+            clientInfo.os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
