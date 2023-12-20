@@ -567,7 +567,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 		    
 		}
 
-
+/*
 	     class Card {
 	        private int fruit;
 	        private int number;
@@ -589,8 +589,10 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	            return "Fruit: " + getFruit() + ", Number: " + getNumber();
 	        }
 	    }
+	     */
 	    
 	   //테이블의 정보를 담은 클래스
+	  /*
 	     class Table {
 	     	private List<Card> list = new LinkedList<>(); // 플레이어가 넘긴 카드 리스트
 	     	Card[] playerCard = new Card[4]; // 현재 보이는 카드
@@ -603,7 +605,6 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	     		
 	     	}
 	     	
-	     
 
 		// 종을 친 플레이어에게 테이블에 있는 카드들을 주고, 플레이어의 카드 장수를 갱신
 	        public void giveTableCardsToPlayer(int playerId, List<Card> playerCardList) {
@@ -630,7 +631,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	     		return list.size();
 	     	}
 
-	     	public boolean sumFive(/* Manager mng */) { // 과일이 다섯개인지 확인해 주는 메소드
+	     	public boolean sumFive(/* Manager mng) { // 과일이 다섯개인지 확인해 주는 메소드
 	     		int[] sum = new int[4]; // 각 과일의 총 합
 
 	     		for (int i = 0; i < 4; i++)
@@ -649,7 +650,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	     		return false;
 	     	}
 	     }
-
+	     */
 
 	    
 	     
@@ -688,7 +689,6 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 
 	         
 	     }
-
 	     
 	  // 게임이 종료되었는지 확인하는 메소드
 	     public boolean isGameOver() {
