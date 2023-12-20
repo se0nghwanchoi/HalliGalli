@@ -1,4 +1,7 @@
 import java.awt.BorderLayout;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Font;
@@ -50,6 +53,11 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	Player[] players = new Player[4]; // 플레이어 배열 생성
 	JLabel[] cardcountLabels = new JLabel[4];
 	
+    private DataInputStream is;
+    private DataOutputStream os;
+	
+    JPanel gameStatusPanel;
+	JLabel gameStatusLabel;
 	
 	
 	 ArrayList<Card> deck; // 카드 덱을 저장할 리스트
@@ -72,45 +80,78 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
     Clip clip;
 	
 	JButton bellButton = new JButton(bellIcon); 
-	 
+	
+	
+	
+
+	// 변경값 실시간 반영 목적으로 생성된 함수 
+    private void updateValue(final String message) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                gameStatusLabel.setText(message);
+            }
+        });
+    }
+
+    // 클라이언트에서 서버에게 JLabel 값을 변경 요청 > 써본 결과 실질적 효과 없음 
+
+    private void sendChangeLabel(String s) {
+        try {
+            os.writeUTF(s);
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 	    
 		// 채팅 되는지 보려고 내가 임의로 추가했음!! 확인하면 주석은 지워도 됨 + 수정해도 됨
-	    private void Chat() {
-	        try {
-	            Socket socket = new Socket("localhost", 9999); // 서버의 IP와 포트에 맞게 수정
-	            DataInputStream is = new DataInputStream(socket.getInputStream());
-	            DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-	           
-	            // 클라이언트에서 채팅 메시지를 서버로 전송하는 부분
-	            text_Field.addActionListener(new ActionListener() {
-	                @Override
-	                public void actionPerformed(ActionEvent e) {
-	                    try {
-	                        os.writeUTF(text_Field.getText());
-	                        os.flush(); // 추가: 버퍼 비우기
-	                        text_Field.setText("");
-	                        //text_Field.setText("");
-	                    } catch (IOException ex) {
-	                        ex.printStackTrace();
-	                    }
-	                }
-	            });
+	private void Chat() {
+		try {
+			Socket socket = new Socket("localhost", 9999); // 서버의 IP와 포트에 맞게 수정
+			is = new DataInputStream(socket.getInputStream());
+			os = new DataOutputStream(socket.getOutputStream());
+			
+			// 클라이언트에서 채팅 메시지를 서버로 전송하는 부분
+			text_Field.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						os.writeUTF(text_Field.getText());
+						os.flush(); // 추가: 버퍼 비우기
+						text_Field.setText("");
+						//text_Field.setText("");
+						} catch (IOException ex) {
+							ex.printStackTrace();
+							}
+					}
+				});
 
 	            while (true) {
 	                // 서버에서 받은 채팅 메시지를 JTextArea에 출력하는 부분
+
+	            	
 	                String message = is.readUTF();
-	                text_Area.append(message + "\n");
+	                if(message.startsWith("JLabel 값이 변경되었습니다: ")) {
+                		//wLabel = message.substring("JLabel 값이 변경되었습니다: ".length());
+	                }
+	                else
+	                	text_Area.append(message + "\n");
 	            }
 	        } catch (IOException e) {
 	            e.printStackTrace();
 	        }
 	    }
 	    
+
+
 	
 	public Client() {
 		 // 카드 덱 초기화
-        initializeDeck();	
+        initializeDeck();
+
+
         
 		setTitle("할리갈리");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -122,7 +163,8 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
             players[i].setAlive(true);
         }
        
-       
+        
+
         
         class BackGround extends JPanel { //배경이미지 설정
         	ImageIcon icon = new ImageIcon("images/backG.jpg");
@@ -208,7 +250,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
      		// 메인 패널에 게임 상황 패널 추가
      		p.add(gameStatusPanel);
 
- 	
+
  		
  		//bell 버튼 설정
  		bellButton.setSize(bellIcon.getIconWidth(), bellIcon.getIconHeight());
@@ -216,7 +258,9 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
         bellButton.setOpaque(false); // 배경색을 투명으로 설정
         bellButton.setContentAreaFilled(false); // 내용 영역의 채우기를 비활성화하여 투명하게 설정
         bellButton.setBorderPainted(false); // 테두리를 없애서 투명하게 설정
-	
+        
+
+        //connectToServer();
         bellButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -412,6 +456,8 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 		flipCardButton.addActionListener(new ActionListener() {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
+		    	
+		    	String s = "";
 		       
 		    	// 현재 플레이어가 살아있는지 확인하고 살아있을 경우에만 기능 수행
 		        if (players[currentPlayer].isAlive()) {
@@ -443,7 +489,28 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 
 		            currentPlayer = (currentPlayer + 1) % 4; // 다음 플레이어로 넘어감
 		            gameStatusLabel.setText("Player " + (currentPlayer +1) + "의 차례입니다");
-		            
+		            sendChangeLabel("JLabelChange:"+gameStatusLabel.getText());
+
+		            /*
+		            try {
+		            	String value = is.readUTF();
+	                	if(value.startsWith("JLabel 값이 변경되었습니다: ")) {
+	                		String newLabel = value.substring("JLabel 값이 변경되었습니다: ".length());
+	    		            gameStatusLabel.setText(newLabel);
+	                		/*
+	                        SwingUtilities.invokeLater(new Runnable() {
+	                            @Override
+	                            public void run() {
+	                                gameStatusLabel.setText(newLabel);
+	                            }
+	                        });
+
+	                	}
+		            } catch(IOException e3) {
+		            	e3.printStackTrace();
+		            }
+		            */
+
 
 
 			        javax.swing.Timer timer = new javax.swing.Timer(1000, new ActionListener() {
@@ -545,11 +612,6 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	            }
 	            list.clear(); // 테이블의 카드 리스트 비우기
 
-//	            // 모든 플레이어의 카드 장수 출력 
-//	            for (int i = 0; i < 4; i++) {
-//	                int cardCount = players[i].getHand().size();
-//	                System.out.println("플레이어 " + (i + 1) + "의 장수: " + cardCount);
-//	            }
 	        }
 
 	     	// 테이블에 카드 제거(플레이어 BELL)
