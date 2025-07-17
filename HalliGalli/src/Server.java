@@ -10,6 +10,13 @@ import javax.swing.JLabel;
 public class Server {
     static Vector<ClientInfo> clients = new Vector<>();
 
+    Table table = new Table();
+    static Deck deck = new Deck();
+    static Player[] players = new Player[4];
+    
+    public Server() {
+    	
+    }
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(9999);
 
@@ -18,13 +25,99 @@ public class Server {
             DataInputStream is = new DataInputStream(socket.getInputStream());
             DataOutputStream os = new DataOutputStream(socket.getOutputStream());
 
-            ClientInfo clientInfo = new ClientInfo("플레이어 " + (clients.size() + 1), is, os, socket);
+            for (int i = 0; i < 4; i++) {
+                players[i] = new Player(deck);
+                players[i].setAlive(true);
+            }
+            
+            Player player = new Player(deck);
+            ClientInfo clientInfo = new ClientInfo("플레이어 " + (clients.size() + 1), is, os, socket, player);
             clients.add(clientInfo);
 
             ServerThread thread = new ServerThread(clientInfo);
             thread.start();
         }
     }
+}
+
+	class Deck {
+		private ArrayList<Card>deck;
+		
+		public Deck() {
+			this.deck = new ArrayList<>();
+			initializeDeck();
+		}
+	
+	
+	   void initializeDeck() {
+	    deck = new ArrayList<>();
+	    int[] fruits = {0, 1, 2, 3}; // 0: banana, 1: lime, 2: plum, 3: strawberry
+	
+	   
+	    for (int fruit : fruits) {
+	        // 1부터 4까지의 숫자는 각각 3장씩 추가
+	        for (int i = 1; i <= 4; i++) {
+	            for (int j = 0; j < 3; j++) {
+	            	
+	                deck.add(new Card(fruit, i));
+	            }
+	        }
+	        // 숫자 5는 2장씩 추가
+	        for (int j = 0; j < 2; j++) {
+	            deck.add(new Card(fruit, 5));
+	        }
+	    }
+	
+	    Collections.shuffle(deck);
+	    
+	   }
+	   public ArrayList<Card> getDeck() {
+	        return deck;
+	    }
+
+	    // 카드 뽑기
+	    public Card drawCard() {
+	        if (!deck.isEmpty()) {
+	            return deck.remove(0);
+	        }
+	        return null; // 덱에 카드가 없는 경우
+	    }
+	   
+	}
+class Player {
+    List<Card> hand; // 플레이어가 가진 카드 리스트
+    boolean isAlive;
+    public Player(Deck deck) {
+   	 
+        hand = new ArrayList<>();
+        initializeHandWithCards(deck);
+     
+    }
+
+    public List<Card> getHand() {
+        return hand;
+        
+    }
+    private void initializeHandWithCards(Deck deck) {
+        for (int i = 0; i < 14; i++) {
+            Card card = deck.drawCard(); // 덱에서 카드 하나를 뽑아옴
+            hand.add(card);
+        }
+    }
+    	      
+    public void addToHand(Card card) {
+        hand.add(card);
+    }
+    
+    public boolean isAlive() {
+   	 return isAlive;
+    }
+    
+    public void setAlive(boolean alive) {
+   	 isAlive = alive;
+    }
+
+    
 }
 
 class Card {
@@ -116,12 +209,14 @@ class ClientInfo {
     DataInputStream is;
     DataOutputStream os;
     Socket socket;
+    Player player;
 
-    public ClientInfo(String name, DataInputStream is, DataOutputStream os, Socket socket) {
+    public ClientInfo(String name, DataInputStream is, DataOutputStream os, Socket socket, Player player) {
         this.name = name;
         this.is = is;
         this.os = os;
         this.socket = socket;
+        this.player = player;
     }
 }
 

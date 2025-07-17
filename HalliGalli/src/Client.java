@@ -107,7 +107,7 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
     }
 
 	    
-		// 채팅 되는지 보려고 내가 임의로 추가했음!! 확인하면 주석은 지워도 됨 + 수정해도 됨
+		
 	private void Chat() {
 		try {
 			Socket socket = new Socket("localhost", 9999); // 서버의 IP와 포트에 맞게 수정
@@ -150,8 +150,8 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	
 	public Client() {
 		 // 카드 덱 초기화
-        initializeDeck();
-
+        
+        Chat();
 
         
 		setTitle("할리갈리");
@@ -159,11 +159,11 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
         setLayout(null); 
         
         // Player 객체 생성 후 players 배열에 추가
-        for (int i = 0; i < 4; i++) {
-            players[i] = new Player();
-            players[i].setAlive(true);
-        }
-       
+//        for (int i = 0; i < 4; i++) {
+//            players[i] = new Player();
+//            players[i].setAlive(true);
+//        }
+//       
         
 
         
@@ -545,151 +545,13 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	        return new ImageIcon(imagePath); // 해당 이미지 아이콘 반환
 	    }
 	  	  
-	  void initializeDeck() {
-		    deck = new ArrayList<>();
-		    int[] fruits = {0, 1, 2, 3}; // 0: banana, 1: lime, 2: plum, 3: strawberry
-
-		   
-		    for (int fruit : fruits) {
-		        // 1부터 4까지의 숫자는 각각 3장씩 추가
-		        for (int i = 1; i <= 4; i++) {
-		            for (int j = 0; j < 3; j++) {
-		            	
-		                deck.add(new Card(fruit, i));
-		            }
-		        }
-		        // 숫자 5는 2장씩 추가
-		        for (int j = 0; j < 2; j++) {
-		            deck.add(new Card(fruit, 5));
-		        }
-		    }
-
-		    Collections.shuffle(deck);
-		    
-		}
-
-/*
-	     class Card {
-	        private int fruit;
-	        private int number;
-
-	        public Card(int fruit, int number) {
-	            this.fruit = fruit;
-	            this.number = number;
-	        }
-
-	        public int getFruit() {
-	            return fruit;
-	        }
-
-	        public int getNumber() {
-	            return number;
-	        }
-	        @Override
-	        public String toString() {
-	            return "Fruit: " + getFruit() + ", Number: " + getNumber();
-	        }
-	    }
-	     */
-	    
-	   //테이블의 정보를 담은 클래스
-	  /*
-	     class Table {
-	     	private List<Card> list = new LinkedList<>(); // 플레이어가 넘긴 카드 리스트
-	     	Card[] playerCard = new Card[4]; // 현재 보이는 카드
+	 
 
 
-	     	// 테이블에 카드 추가(플레이어가 TURN)
-	     	public void addTableCard(Card c, int playerId) {
-	     		list.add(0, c);
-	     		playerCard[playerId] = c;
-	     		
-	     	}
-	     	
-
-		// 종을 친 플레이어에게 테이블에 있는 카드들을 주고, 플레이어의 카드 장수를 갱신
-	        public void giveTableCardsToPlayer(int playerId, List<Card> playerCardList) {
-	            for (Card card : list) {
-	                playerCardList.add(card); // 종을 친 플레이어의 카드 리스트에 카드 추가
-	            }
-	            list.clear(); // 테이블의 카드 리스트 비우기
-
-	        }
-
-	     	// 테이블에 카드 제거(플레이어 BELL)
-	     	public Card removeTableCard() {
-	     		for (int i = 0; i < 4; i++) { // 보이는 카드 초기화
-	     			playerCard[i] = null;
-	     		}
-	     		return list.remove(0);
-	     	}
-
-	     	public void showTableList() {
-	     		System.out.println("TABLE : " + list);
-	     	}
-
-	     	public int size() {
-	     		return list.size();
-	     	}
-
-	     	public boolean sumFive(/* Manager mng) { // 과일이 다섯개인지 확인해 주는 메소드
-	     		int[] sum = new int[4]; // 각 과일의 총 합
-
-	     		for (int i = 0; i < 4; i++)
-	     			if (playerCard[i] != null) // 뒤집은 카드만
-	     				sum[playerCard[i].getFruit()] += playerCard[i].getNumber();
-
-
-	     		for (int i = 0; i < 4; i++) {
-	     			if (sum[i] == 5) {
-	     				//System.out.println("동일 과일 5개");
-	     				return true;
-	     			}
-	     		}
-
-	     		
-	     		return false;
-	     	}
-	     }
-	     */
 
 	    
 	     
-	     public class Player {
-	         List<Card> hand; // 플레이어가 가진 카드 리스트
-	         boolean isAlive;
-	         public Player() {
-	        	 
-	             hand = new ArrayList<>();
-	             initializeHandWithCards();
-	          
-	         }
-
-	         public List<Card> getHand() {
-	             return hand;
-	             
-	         }
-	         private void initializeHandWithCards() {
-	             for (int i = 0; i < 14; i++) {
-	                 Card card = deck.remove(0); // 덱에서 카드 하나를 뽑아옴
-	                 hand.add(card);
-	             }
-	         }
-	         	      
-	         public void addToHand(Card card) {
-	             hand.add(card);
-	         }
-	         
-	         public boolean isAlive() {
-	        	 return isAlive;
-	         }
-	         
-	         public void setAlive(boolean alive) {
-	        	 isAlive = alive;
-	         }
-
-	         
-	     }
+	    
 	     
 	  // 게임이 종료되었는지 확인하는 메소드
 	     public boolean isGameOver() {
@@ -753,6 +615,6 @@ public class Client extends JFrame /*implements Runnable, ActionListener*/ {
 	        // 게임 종료 확인 스레드 시작
 	        GameEndChecker gameEndChecker = client.new GameEndChecker();
 	        gameEndChecker.start();
-	        client.Chat();
+	        
 	    }
 }
